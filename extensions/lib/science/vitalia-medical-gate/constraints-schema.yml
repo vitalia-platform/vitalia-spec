@@ -1,0 +1,132 @@
+# constraints-schema.yml — Schema de Constraints Médicos Vitalia
+# kit-v2/extensions/lib/science/vitalia-medical-gate/constraints-schema.yml
+# Atualizado em: 05-06-2026 12:53:00(GMT-04:00)
+#
+# Uso: cada constraint MC-NNN deve seguir este schema.
+# Prefixo MC-GLOBAL-NNN → válido para qualquer projeto Vitalia
+# Prefixo MC-NNN        → específico do projeto em que foi criado
+
+schema:
+  id:
+    type: string
+    pattern: "MC-(GLOBAL-)?[0-9]{3}"
+    required: true
+    description: "Identificador único rastreável. Ex: MC-001, MC-GLOBAL-001"
+
+  descricao:
+    type: string
+    required: true
+    description: "O que a IA deve respeitar. Deve ser assertivo e verificável."
+
+  formula:
+    type: string
+    required: false
+    description: "Fórmula matemática quando aplicável. Ex: 208 - 0.7 * age"
+
+  unidade:
+    type: string
+    required: false
+    description: "Unidade de medida. Ex: bpm, kg, kcal, mmol/L"
+
+  fonte:
+    type: string
+    required: true
+    description: "Referência científica. Ex: Tanaka et al., 2001 — Med Sci Sports Exerc"
+
+  nivel_evidencia:
+    type: enum
+    values: [A, B, C]
+    required: true
+    description: |
+      A = Meta-análise ou múltiplos RCTs de alta qualidade
+      B = RCT único bem desenhado ou consenso de sociedade médica reconhecida
+      C = Expert opinion ou guideline sem RCT de alta qualidade
+
+  restricoes:
+    type: list[string]
+    required: false
+    description: "Populações ou contextos onde o constraint NÃO se aplica ou deve ser ajustado"
+
+  faixa_aplicacao:
+    type: object
+    required: false
+    properties:
+      idade_min:
+        type: integer
+        description: "Idade mínima da população-alvo (anos)"
+      idade_max:
+        type: integer
+        description: "Idade máxima da população-alvo (anos)"
+      populacao:
+        type: string
+        description: "Descrição da população. Ex: adultos saudáveis, atletas recreativos"
+
+  data_revisao:
+    type: string
+    pattern: "DD-MM-YYYY HH:MM:SS(GMT-04:00)"
+    required: true
+    description: "Data da última validação clínica (selo de tempo completo)"
+
+  revisor:
+    type: string
+    required: false
+    description: "Profissional ou especialista que validou. Ex: exercise-physiologist-review-05-06-2026"
+
+---
+
+# Catálogo de Constraints Globais — MC-GLOBAL
+
+constraints_globais:
+
+  - id: MC-GLOBAL-001
+    descricao: "Frequência Cardíaca Máxima — Fórmula de Tanaka"
+    formula: "208 - 0.7 * age"
+    unidade: bpm
+    fonte: "Tanaka H et al. — J Am Coll Cardiol. 2001;37(1):153-6"
+    nivel_evidencia: A
+    restricoes:
+      - "Não aplicar a cardiopatas sem avaliação médica prévia"
+      - "Não usar em crianças sem ajuste pediátrico específico"
+      - "Atletas de elite podem ter FCmax significativamente maior"
+    faixa_aplicacao:
+      idade_min: 18
+      idade_max: 81
+      populacao: "adultos saudáveis não cardiopatas"
+    data_revisao: "05-06-2026 12:53:00(GMT-04:00)"
+    revisor: "exercise-physiologist-review-05-06-2026"
+
+  - id: MC-GLOBAL-002
+    descricao: "Zonas de Treinamento por % FCmax — Modelo de 5 Zonas"
+    fonte: "ACSM Guidelines for Exercise Testing and Prescription, 11ª ed. (2022)"
+    nivel_evidencia: B
+    formula: |
+      Z1: 50-60% FCmax (recuperação ativa)
+      Z2: 60-70% FCmax (aeróbico base / fat burning)
+      Z3: 70-80% FCmax (aeróbico moderado)
+      Z4: 80-90% FCmax (limiar anaeróbico)
+      Z5: 90-100% FCmax (esforço máximo)
+    unidade: "% FCmax"
+    restricoes:
+      - "Depende da FCmax calculada por MC-GLOBAL-001 ou medida por teste máximo"
+      - "Zonas Z4 e Z5 contraindicadas sem autorização médica para populações sedentárias"
+    faixa_aplicacao:
+      idade_min: 18
+      populacao: "adultos saudáveis ou com liberação médica"
+    data_revisao: "05-06-2026 12:53:00(GMT-04:00)"
+    revisor: "exercise-physiologist-review-05-06-2026"
+
+  - id: MC-GLOBAL-003
+    descricao: "IMC — Classificação OMS"
+    formula: "peso_kg / (altura_m ** 2)"
+    unidade: "kg/m²"
+    fonte: "WHO Expert Consultation — Lancet. 2004;363(9403):157-63"
+    nivel_evidencia: A
+    restricoes:
+      - "IMC não distingue massa magra de massa gorda — interpretar com cautela em atletas"
+      - "Não usar como único marcador de saúde ou risco cardiovascular"
+      - "Ajustes populacionais necessários para populações asiáticas (pontos de corte menores)"
+    faixa_aplicacao:
+      idade_min: 18
+      populacao: "adultos — não aplicar a crianças sem tabelas pediátricas OMS"
+    data_revisao: "05-06-2026 12:53:00(GMT-04:00)"
+    revisor: "exercise-physiologist-review-05-06-2026"
