@@ -4,8 +4,9 @@
 
 set -e
 
-# Descobrir diretório do kit
-KIT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." >/dev/null 2>&1 && pwd)"
+# Resolver o caminho real do script (seguindo symlinks) para obter o KIT_DIR correto
+SCRIPT_REAL=$(python3 -c "import os,sys; print(os.path.realpath('${BASH_SOURCE[0]}'))" 2>/dev/null || realpath "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")
+KIT_DIR="$(cd "$(dirname "$SCRIPT_REAL")/.." >/dev/null 2>&1 && pwd)"
 TARGET_DIR="${PWD}"
 
 AGENT_DIR="${TARGET_DIR}/.specify"
@@ -30,6 +31,27 @@ for item in instructions rules extensions templates scripts; do
         echo "   🔗 Symlink atualizado: $item -> $KIT_DIR/$item"
     fi
 done
+
+# Instalação do Plugin AGY (Antigravity)
+AGY_PLUGINS_DIR="${HOME}/.gemini/config/plugins"
+VITALIA_PLUGIN_DIR="${AGY_PLUGINS_DIR}/vitalia"
+INTEGRATION_DIR="${KIT_DIR}/integrations/agy"
+
+if [ -d "$INTEGRATION_DIR" ]; then
+    echo "🤖 Instalando plugin Vitalia no Antigravity (AGY)..."
+    mkdir -p "$AGY_PLUGINS_DIR"
+    # Remove instalação anterior e recria via symlink
+    rm -rf "$VITALIA_PLUGIN_DIR"
+    ln -s "$INTEGRATION_DIR" "$VITALIA_PLUGIN_DIR"
+    echo "   🔗 Plugin vinculado: $VITALIA_PLUGIN_DIR -> $INTEGRATION_DIR"
+    echo "   ✅ Skills disponíveis no AGY:"
+    for skill_dir in "$INTEGRATION_DIR/skills"/*/; do
+        skill_name=$(basename "$skill_dir")
+        echo "      • $skill_name"
+    done
+else
+    echo "   ⚠️  Diretório de integração AGY não encontrado em $INTEGRATION_DIR. Pulando."
+fi
 
 # Configuração do Contexto Desconectado (Nested Git)
 echo "📂 Configurando repositório de sessão isolado..."

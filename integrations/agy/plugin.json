@@ -1,0 +1,10 @@
+{
+  "name": "vitalia",
+  "version": "2.1.0",
+  "description": "Vitalia Spec Kit — Agentes clínicos, Medical Gate e workflows SDD para projetos de saúde.",
+  "author": {
+    "name": "Vitalia Platform"
+  },
+  "repository": "https://github.com/vitalia-platform/vitalia-spec",
+  "license": "MIT"
+}
