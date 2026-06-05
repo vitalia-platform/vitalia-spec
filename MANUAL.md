@@ -1,136 +1,241 @@
-# Manual da Agência Vitalia (Agency System)
+<!-- kit-v2/MANUAL.md | Atualizado em: 05-06-2026 13:08:00(GMT-04:00) -->
 
-Bem-vindo ao **Manual do Proprietário** da infraestrutura de inteligência artificial da Vitalia Platform.
-Este documento detalha o funcionamento, as ferramentas disponíveis, a governança de contexto e os procedimentos de operação dos agentes que trabalham no projeto.
+# Vitalia Spec Kit — Manual do Proprietário
 
-## 1. Visão Geral do Kit de Agentes
-
-O Kit de Agentes é um ecossistema portátil projetado para atuar como uma "agência de desenvolvimento autônoma" com controle rigoroso. Ele implementa o conceito de **Smart Routing** (Roteamento Inteligente), onde a intenção do desenvolvedor é analisada em tempo real para ativar o especialista (agente) mais adequado para a tarefa solicitada.
-
-### Os 4 Pilares da Agência
-1. **Agentes:** As personas (ex: Coder, Biólogo, Arquiteto) que ditam o *comportamento* da IA.
-2. **Workflows:** Os roteiros passo a passo (acionados via `/comando`) para processos padronizados.
-3. **Regras:** Diretrizes de segurança que podem ser ativas permanentemente (*Always-on*) ou engatilhadas por arquivos específicos (*File-triggered*).
-4. **Skills:** Habilidades técnicas detalhadas de desenvolvimento ou ciência que o agente consulta antes de implementar (ex: melhores práticas do Next.js, validação de evidência clínica).
+Bem-vindo ao **Manual de Operação** do Vitalia Spec Kit.
+Este documento cobre instalação, fluxo de trabalho, governança de contexto e resolução de problemas.
 
 ---
 
-## 2. Setup Inicial e Importação de Nuvem
+## 1. Visão Geral
 
-### Instalação Básica
-Para ativar a agência em um ambiente novo, execute o instalador na raiz do projeto:
+O Vitalia Spec Kit é uma infraestrutura portátil de agentes de IA para projetos em saúde. Ele une dois mundos:
+
+- **Spec-Driven Development (SDD)** — toda feature começa com uma spec aprovada antes de qualquer código
+- **Medical Gate** — toda feature de saúde passa por classificação de risco clínico automático
+
+### Os 5 Pilares
+
+| Pilar | O que faz |
+|---|---|
+| **Constituição** | 23 artigos imutáveis que governam toda decisão |
+| **Agentes** | 17 especialistas (dev, ciência, meta) |
+| **Extensões** | 23 slash commands para workflows padronizados |
+| **Medical Gate** | Gate de segurança clínica com constraints MC-NNN |
+| **Contexto** | Memória dual-git sincronizada entre máquinas |
+
+---
+
+## 2. Instalação
+
+### Pré-requisitos
+
+- Antigravity (Gemini CLI) ou assistente compatível com `.specify/`
+- Python 3.8+
+- Git
+
+### Instalação em um Projeto
+
 ```bash
-bash kit/scripts/install.sh
+# 1. Clone o kit em um local fixo da sua máquina
+git clone git@github.com:vitalia-platform/vitalia-spec.git ~/vitalia-spec
+
+# 2. Na raiz do seu projeto, execute o instalador
+bash ~/vitalia-spec/scripts/install.sh
+
+# 3. Quando solicitado, informe a URL do seu repositório de contexto:
+#    git@github.com:SEU_USUARIO/seu-projeto-contexto.git
+
+# 4. Valide a instalação
+python3 .specify/scripts/validate-kit.py --target .
+
+# 5. Inicie a sessão no assistente
+/session-start
 ```
-Isso criará a pasta `.specify/` (que estará no `.gitignore`) e preparará os *symlinks* do kit.
+
+O `install.sh` cria os symlinks em `.specify/` apontando para o kit:
+
+```
+.specify/
+├── extensions  → ~/vitalia-spec/extensions/
+├── instructions → ~/vitalia-spec/instructions/
+├── rules       → ~/vitalia-spec/rules/
+├── templates   → ~/vitalia-spec/templates/
+└── scripts     → ~/vitalia-spec/scripts/
+```
 
 ### Importando Contexto da Nuvem
-Se você já possui um repositório de contexto salvo na nuvem e quer trazê-lo para a sua máquina atual, siga estes passos:
 
-1. **Acesse o repositório isolado de sessão:**
-   ```bash
-   cd .specify/memory/session
-   ```
-2. **Adicione o seu repositório remoto:**
-   ```bash
-   git remote add origin <URL_DO_SEU_REPO_DE_CONTEXTO>
-   ```
-3. **Baixe o histórico:**
-   ```bash
-   git fetch origin
-   ```
-4. **Substitua o estado local pelo da nuvem (Recomendado):**
-   ```bash
-   git reset --hard origin/main
-   ```
-   *(Nota: Se houver contexto local valioso, use `git pull origin main --allow-unrelated-histories`)*
-5. **Atualize o Guardião de Sincronia:**
-   ```bash
-   cd ../..
-   python3 .specify/scripts/lib_sync_guard.py --action update --session-dir .specify/memory/session
-   ```
-Após estes passos, basta rodar `/session-start` no seu chat para que a IA leia tudo o que foi importado.
+Se você já tem um repositório de contexto salvo:
+
+```bash
+cd .specify/memory/session
+git remote add origin <URL_DO_SEU_REPO_DE_CONTEXTO>
+git fetch origin
+git reset --hard origin/main
+
+# Atualiza o guardião de sincronia
+cd ../..
+python3 .specify/scripts/lib_sync_guard.py --action update --session-dir .specify/memory/session
+```
+
+Após isso: `/session-start` para a IA ler o contexto importado.
 
 ---
 
-## 3. Catálogo Completo da Agência
+## 3. Fluxo de Trabalho SDD
 
-### 🤖 Agentes (`kit-v2/instructions/`)
-Os agentes estão divididos em três camadas de atuação:
+Toda feature segue o mesmo pipeline:
 
-- **Desenvolvimento (Dev):**
-  - `coder`: Focado em implementação de código limpo e resolução de bugs.
-  - `conductor`: O maestro full-stack; orquestra tarefas complexas entre frontend e backend.
-  - `reviewer`: Especialista em revisão de código, focado em segurança e padrões.
-  - `shipper`: Especialista em deploy, integrações contínuas e infraestrutura.
-  - `tester`: Arquiteto de qualidade; focado em Test-Driven Development (TDD) e automação.
+```
+/spec-specify   → spec.md aprovada pelo usuário
+      ↓
+[/medical-gate] → gate automático se domínio de saúde detectado
+      ↓
+/spec-plan      → plano técnico aprovado pelo usuário
+      ↓
+/spec-tasks     → tarefas granulares
+      ↓
+/spec-implement → código com TDD
+```
 
-- **Ciência e Saúde (Science):**
-  - `biologist`: Análise de interações biológicas e fisiologia estrutural.
-  - `endocrinologist`: Especialista em hormônios, marcadores e protocolos clínicos complexos.
-  - `exercise-physiologist`: Fisiologia do exercício, prescrição de treino, zonas de FC, VO₂max e recuperação.
-  - `longevity-specialist`: Medicina de longevidade, aging, epigenética e protocolos anti-aging — diferencial competitivo da Vitalia.
-  - `nutritionist`: Focado em segurança alimentar (alérgenos) e prescrição nutricional baseada em evidência.
-  - `psychologist`: Especialista em neurociência do comportamento e mudança de hábitos (eixos de bem-estar).
-  - `research-analyst`: Análise de literatura científica e trabalho em par com todos os agentes — o elo entre ciência e engenharia.
-  - `sleep-specialist`: Medicina do sono, cronobiologia aplicada, métricas de wearables e recovery.
-  - `supplement-pharmacologist`: Suplementação baseada em evidências, interações e dosagens seguras (alto risco HITL).
+### Iniciando uma Feature
 
-- **Meta (Gerenciamento do Kit):**
-  - `bootstrapper`: Inicializa e configura projetos novos do zero.
-  - `knowledge-curator`: Garante que aprendizados da sessão virem "regras" ou "skills" reaproveitáveis.
-  - `session-manager`: Responsável exclusivo por manter e proteger o estado do projeto.
+```
+Você: Quero criar uma feature de cálculo de zonas de treino por FC.
 
-### ⚡ Workflows (`kit-v2/extensions/`)
-Os workflows são acionados via chat (Slash Commands):
-- `/session-start`: Lê o repositório, identifica onde o trabalho parou e prepara a IA para a sessão.
-- `/session-end`: Faz o resumo do dia, salva no contexto e roda o script de sincronia.
-- `/pair`: Ativa o Pair Programming (a IA sugere, o humano revisa e aprova, passo a passo).
-- `/continue`: Retoma uma tarefa inacabada de forma cirúrgica (lê o código atual antes de modificar).
-- `/science-review`: Paralisa a implementação técnica e aciona a camada `Science` para verificar uma regra clínica (HITL).
-- `/release`: Processo padrão de documentação de changelog e empacotamento antes de deploy.
-- `/adr`: Cria de forma interativa um *Architecture Decision Record*.
-- `/bootstrap`: Inicia um projeto do zero a partir dos templates da Vitalia.
+Assistente: Iniciando /spec-specify...
+            [gera rascunho de spec]
+            ✅ Aprovação necessária antes de avançar.
 
-### 📜 Regras Ouro (`kit-v2/rules/`)
-As regras definem restrições intransponíveis:
-- **Always-on:** `hitl-medical` (Humano no loop para qualquer dado clínico), `session-context` (obriga a leitura de contexto ao iniciar), `smart-routing` (roteamento ativo constante), `architect-constitution` (P21 regras base da Vitalia).
-- **File-triggered:** `health-data-guard` (acionada ao mexer em PII ou dados de saúde), `api-safety` (acionada ao expor endpoints), `test-required` (bloqueio de commit de core/services sem testes atrelados).
-
-### 🧠 Skills (`kit-v2/extensions/lib/`)
-As skills ensinam à IA *como pensar*, não apenas *como codar*. Estão agrupadas em:
-- **Dev:** Melhores práticas de Node, React, Rust, Python, Bash, Tailwind, Git Flow e Banco de Dados (modelagem e índices).
-- **Core:** Habilidades arquiteturais (MCP Builder, Context Engine, Agent Factory, etc).
-- **Science:** Protocolos RAG em bases médicas (PubMed), hierarquia de evidência científica, e segurança clínica.
+            🏥 Vitalia Medical Gate — Domínio de saúde detectado.
+            Risco: 🟡 MEDIUM (score 3/7)
+            Fatores: exibição ao usuário + fórmula fisiológica + dados individuais
+            Constraints propostos: MC-GLOBAL-001 (FCmax), MC-GLOBAL-002 (Zonas ACSM)
+            ✅ Confirma os constraints para avançar ao /spec-plan?
+```
 
 ---
 
-## 4. Gestão de Contexto e Concorrência
+## 4. Medical Gate — Guia Rápido
 
-A infraestrutura foi projetada com um **Controle Otimista de Concorrência (ETags)**. Isso permite trabalhar na mesma plataforma usando IA em múltiplos computadores (ex: Notebook, Desktop) sem sobrescrever o racicionado da máquina anterior.
+### Gate I — Avaliação de Risco (após `/spec-specify`)
 
-### O Modelo *Nested Git*
-A memória da IA não polui o seu código principal. Durante o `install.sh`, o diretório oculto `.specify/memory/session/` é criado e transformado em um **repositório Git independente**.
+| Nível | Score | Protocolo |
+|---|---|---|
+| 🟢 LOW | 0 | Avança direto para `/spec-plan` |
+| 🟡 MEDIUM | 1–2 | HITL: usuário aprova constraints MC-NNN |
+| 🔴 HIGH | 3+ | HITL + revisão de profissional de saúde humano |
 
-### O Guardião de Sincronia (`lib_sync_guard.py`)
-Para evitar conflitos de merge silenciosos no contexto de IA, usamos uma trava (`.sync_lock`).
-1. **Ao Iniciar:** O Guardião lê o ETag remoto. Se houver divergência, ele bloqueia o trabalho e exige sincronização. Se estiver tudo OK, ele salva o timestamp atual no `.sync_lock`.
-2. **Ao Encerrar:** O Guardião verifica: *"O timestamp na nuvem hoje é igual ao timestamp do `.sync_lock` desta máquina?"*
-3. **Se Sim:** O Push é feito com sucesso via `session-sync.sh`.
-4. **Se Não:** Outra máquina empurrou dados de contexto antes de você. A sincronização aborta.
+### Gate II — Aprovação de Publicação (antes de ir para produção)
+
+```
+DRAFT   → gerado pela IA (não exibível ao usuário)
+REVIEW  → avaliado por especialista interno
+ACTIVE  → aprovado por profissional de saúde ← único estado publicável
+```
+
+### Domínios que acionam o gate automaticamente
+
+```
+diagnóstico · sintomas · condições médicas · protocolos de tratamento
+suplementação · biomarcadores · nutrição individualizada · dosagens
+planos de saúde/wellness/fitness · fórmulas fisiológicas (FC, VO₂max, IMC)
+```
+
+### Constraints Globais Disponíveis
+
+| ID | Descrição | Fonte | Nível |
+|---|---|---|---|
+| MC-GLOBAL-001 | FCmax = 208 − 0,7 × idade (Tanaka) | JACC 2001 | A |
+| MC-GLOBAL-002 | Zonas de treino por % FCmax (5 zonas) | ACSM 2022 | B |
+| MC-GLOBAL-003 | IMC — Classificação OMS | WHO 2004 | A |
+
+Catálogo completo: `extensions/lib/science/vitalia-medical-gate/constraints-schema.yml`
 
 ---
 
-## 5. Troubleshooting e Comandos de Operação
+## 5. Gestão de Sessão e Contexto
 
-Sempre execute os scripts de manutenção a partir da raiz do repositório principal do seu projeto (`vitalia-platform`).
+### Arquitetura Dual-Git
 
-| Comando / Script | Propósito |
-| :--- | :--- |
-| `bash kit/scripts/install.sh` | Restaura *symlinks* do kit e inicializa o repositório de sessão. |
-| `python3 .specify/scripts/validate-kit.py --target .` | Faz auditoria para verificar se algum symlink do kit quebrou e se o ETag está válido. |
-| `bash .specify/scripts/session-sync.sh` | O script que faz commit das mudanças na pasta `.specify/memory/session` e sobe para a nuvem. Usado pelo `/session-end`. |
-| `bash .specify/scripts/session-resolve.sh` | **A Ferramenta de Emergência.** Usada quando a IA avisa que houve um *Erro de Concorrência*. Ele te guiará para baixar do remoto ou forçar o push local. |
+O kit usa dois repositórios Git independentes:
+
+```
+Repositório Principal (seu código)
+    └── .specify/memory/session/  ← Repositório de Contexto (Git separado)
+            ├── CONTEXT.md           Estado atual do projeto
+            ├── README.md            Dashboard (exibido no GitHub)
+            ├── SESSION_HISTORY.md   Histórico de sessões (cronologia reversa)
+            ├── CONSOLIDATION_LOG.md Lock distribuído de consolidação
+            ├── sprint_atual.md      Checklist da sprint atual
+            └── shards/
+                └── [MACHINE_ID].md  Estado de cada máquina
+```
+
+### Comandos de Sessão
+
+| Comando | Quando usar |
+|---|---|
+| `/session-start` | Sempre ao iniciar — valida ambiente e carrega contexto |
+| `/session-end` | Ao encerrar — salva shard local e commita |
+| `/session-consolidate` | Após session-end — sincroniza nuvem e atualiza dashboard |
+
+### Controle de Concorrência (ETags)
+
+O `lib_sync_guard.py` previne conflitos entre máquinas:
+
+1. **Ao iniciar**: lê ETag remoto — bloqueia se divergir, exige `/session-resolve.sh`
+2. **Ao consolidar**: adquire lock no `CONSOLIDATION_LOG.md` antes de empurrar
+3. **Lock liberado**: após push bem-sucedido do dashboard atualizado
 
 ---
-**Vitalia Platform** - *Tecnologia a serviço da vida.*
+
+## 6. Regras da Constituição — Referência Rápida
+
+A [Constituição Vitalia v1.0](./rules/always-on/architect-constitution.md) governa tudo. Resumo das regras mais relevantes para o dia a dia:
+
+| Artigo | Regra |
+|---|---|
+| **Art. 0** | Propósito é o árbitro final de qualquer conflito |
+| **Art. I** | Nenhum código sem spec aprovada precedente |
+| **Art. III** | Testes escritos antes da implementação (Red → Green → Refactor) |
+| **Art. V** | Dado de saúde pertence ao Participante — criptografia obrigatória |
+| **Art. VI** | Segredos nunca entram no Git |
+| **Art. VIII** | Gate HITL obrigatório antes de `/spec-plan` em domínios de saúde |
+| **Art. IX** | Conteúdo médico: somente `ACTIVE` vai para produção |
+| **Art. X** | Todo MC-NNN tem fonte científica com nível A, B ou C |
+| **Art. XV** | Timestamp obrigatório — fuso `(GMT-04:00)` em todo artefato |
+
+---
+
+## 7. Troubleshooting
+
+| Problema | Solução |
+|---|---|
+| `validate-kit.py` reporta symlink quebrado | `bash .specify/scripts/install.sh` — recria os symlinks |
+| `CONFLICT (Remote > Lock)` ao iniciar | `bash .specify/scripts/session-resolve.sh` → opção 1 (Pull) |
+| Kit não aparece no assistente | Verificar se `.specify/extensions/` aponta para `kit-v2/extensions/` |
+| Conteúdo médico bloqueado sem gate | Usar `/medical-gate` para classificar e aprovar constraints |
+| Timestamp sem horário | Corrigir para formato `DD-MM-YYYY HH:MM:SS(GMT-04:00)` |
+
+### Comandos de Diagnóstico
+
+```bash
+# Validar integridade completa
+python3 .specify/scripts/validate-kit.py --target .
+
+# Verificar Machine ID
+python3 .specify/scripts/lib_machine.py --get-id
+
+# Resolver conflito de contexto
+bash .specify/scripts/session-resolve.sh
+
+# Verificar ETag manualmente
+python3 .specify/scripts/lib_sync_guard.py --action check --session-dir .specify/memory/session
+```
+
+---
+
+*Vitalia Platform — Tecnologia a serviço da vida.*
+*Constituição Vitalia v1.0 — ratificada em 05-06-2026 12:16:00(GMT-04:00)*
