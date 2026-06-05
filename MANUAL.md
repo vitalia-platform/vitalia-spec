@@ -1,4 +1,4 @@
-<!-- kit-v2/MANUAL.md | Atualizado em: 05-06-2026 13:08:00(GMT-04:00) -->
+<!-- kit-v2/MANUAL.md | Atualizado em: 05-06-2026 13:33:00(GMT-04:00) -->
 
 # Vitalia Spec Kit — Manual do Proprietário
 
@@ -38,35 +38,30 @@ O Vitalia Spec Kit é uma infraestrutura portátil de agentes de IA para projeto
 
 ```bash
 # 1. Clone o kit em um local fixo da sua máquina
-git clone git@github.com:vitalia-platform/vitalia-spec.git ~/vitalia-spec
+### Instalação via One-Liner Remoto
 
-# 2. Na raiz do seu projeto, execute o instalador
-bash ~/vitalia-spec/scripts/install.sh
+Execute no diretório raiz do seu projeto (novo ou já iniciado):
 
-# 3. Quando solicitado, informe a URL do seu repositório de contexto:
-#    git@github.com:SEU_USUARIO/seu-projeto-contexto.git
+```bash
+# Com wget
+sh -c "$(wget -qO- https://raw.githubusercontent.com/vitalia-platform/vitalia-spec/main/install.sh)"
 
-# 4. Valide a instalação
-python3 .specify/scripts/validate-kit.py --target .
-
-# 5. Inicie a sessão no assistente
-/session-start
+# Com curl (macOS nativo)
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/vitalia-platform/vitalia-spec/main/install.sh)"
 ```
 
-O `install.sh` cria os symlinks em `.specify/` apontando para o kit:
+O instalador executa 6 passos automáticos:
+1. Clona/atualiza o kit em `~/.vitalia-spec`
+2. Cria symlinks `.specify/ → ~/.vitalia-spec/`
+3. Instala o plugin AGY em `~/.gemini/config/plugins/vitalia`
+4. Inicializa repositório de contexto de sessão
+5. Protege `.specify/memory/session/` no `.gitignore`
+6. Registra a máquina e valida a instalação
 
-```
-.specify/
-├── extensions  → ~/vitalia-spec/extensions/
-├── instructions → ~/vitalia-spec/instructions/
-├── rules       → ~/vitalia-spec/rules/
-├── templates   → ~/vitalia-spec/templates/
-└── scripts     → ~/vitalia-spec/scripts/
-```
+### Importando Contexto da Nuvem (máquina nova)
 
-### Importando Contexto da Nuvem
-
-Se você já tem um repositório de contexto salvo:
+Se já tem um repositório de contexto salvo, o instalador pergunta a URL durante a instalação.
+Para importar depois:
 
 ```bash
 cd .specify/memory/session
@@ -76,10 +71,10 @@ git reset --hard origin/main
 
 # Atualiza o guardião de sincronia
 cd ../..
-python3 .specify/scripts/lib_sync_guard.py --action update --session-dir .specify/memory/session
+python3 ~/.vitalia-spec/scripts/lib_sync_guard.py --action update --session-dir .specify/memory/session
 ```
 
-Após isso: `/session-start` para a IA ler o contexto importado.
+Após isso, `/session-start` para a IA ler o contexto.
 
 ---
 
@@ -213,9 +208,9 @@ A [Constituição Vitalia v1.0](./rules/always-on/architect-constitution.md) gov
 
 | Problema | Solução |
 |---|---|
-| `validate-kit.py` reporta symlink quebrado | `bash .specify/scripts/install.sh` — recria os symlinks |
-| `CONFLICT (Remote > Lock)` ao iniciar | `bash .specify/scripts/session-resolve.sh` → opção 1 (Pull) |
-| Kit não aparece no assistente | Verificar se `.specify/extensions/` aponta para `kit-v2/extensions/` |
+| `validate-kit.py` reporta symlink quebrado | Rode o instalador novamente: `sh -c "$(curl -fsSL https://raw.githubusercontent.com/vitalia-platform/vitalia-spec/main/install.sh)"` |
+| `CONFLICT (Remote > Lock)` ao iniciar | `bash ~/.vitalia-spec/scripts/session-resolve.sh` → opção 1 (Pull) |
+| Kit não aparece no assistente | Verificar se `.specify/extensions/` aponta para `~/.vitalia-spec/extensions/` |
 | Conteúdo médico bloqueado sem gate | Usar `/medical-gate` para classificar e aprovar constraints |
 | Timestamp sem horário | Corrigir para formato `DD-MM-YYYY HH:MM:SS(GMT-04:00)` |
 
@@ -223,16 +218,16 @@ A [Constituição Vitalia v1.0](./rules/always-on/architect-constitution.md) gov
 
 ```bash
 # Validar integridade completa
-python3 .specify/scripts/validate-kit.py --target .
+python3 ~/.vitalia-spec/scripts/validate-kit.py --target .
 
 # Verificar Machine ID
-python3 .specify/scripts/lib_machine.py --get-id
+python3 ~/.vitalia-spec/scripts/lib_machine.py --get-id
 
 # Resolver conflito de contexto
-bash .specify/scripts/session-resolve.sh
+bash ~/.vitalia-spec/scripts/session-resolve.sh
 
 # Verificar ETag manualmente
-python3 .specify/scripts/lib_sync_guard.py --action check --session-dir .specify/memory/session
+python3 ~/.vitalia-spec/scripts/lib_sync_guard.py --action check --session-dir .specify/memory/session
 ```
 
 ---

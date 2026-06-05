@@ -1,4 +1,4 @@
-<!-- kit-v2/README.md | Atualizado em: 05-06-2026 13:05:00(GMT-04:00) -->
+<!-- kit-v2/README.md | Atualizado em: 05-06-2026 13:30:00(GMT-04:00) -->
 
 <div align="center">
 
@@ -32,13 +32,22 @@ O **Vitalia Spec Kit** é uma coleção portátil de agentes, skills, extensões
 ## Instalação Rápida
 
 ```bash
-# 1. Clone o kit em seu projeto
-bash .specify/scripts/install.sh
+# Com wget (Linux/WSL/macOS com wget)
+sh -c "$(wget -qO- https://raw.githubusercontent.com/vitalia-platform/vitalia-spec/main/install.sh)"
 
-# 2. Valide a instalação
-python3 .specify/scripts/validate-kit.py --target .
+# Com curl (macOS nativo / Linux)
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/vitalia-platform/vitalia-spec/main/install.sh)"
+```
 
-# 3. Inicie a sessão no seu assistente
+O instalador:
+- Clona o kit em `~/.vitalia-spec` (atualiza se já existir)
+- Cria os symlinks em `.specify/` do seu projeto
+- Instala o plugin no AGY (`~/.gemini/config/plugins/vitalia`)
+- Inicializa o repositório de contexto de sessão
+- Funciona em projetos novos e já iniciados
+
+```bash
+# Após instalar, no seu assistente:
 /session-start
 ```
 
@@ -47,7 +56,7 @@ python3 .specify/scripts/validate-kit.py --target .
 ## Estrutura do Kit
 
 ```
-vitalia-spec/
+~/.vitalia-spec/                         ← Kit instalado localmente
 ├── rules/
 │   └── always-on/
 │       ├── architect-constitution.md   ← Constituição v1.0 (23 artigos)
@@ -69,21 +78,28 @@ vitalia-spec/
 │       ├── science/
 │       │   └── vitalia-medical-gate/   ← SKILL.md + constraints-schema.yml
 │       └── dev/
+├── integrations/
+│   └── agy/                            ← Plugin para Antigravity
+│       ├── plugin.json
+│       └── skills/                     ← 9 skills registradas
 ├── instructions/                       ← 17 agentes especialistas
-│   ├── dev/   (conductor, coder, reviewer, tester, shipper)
-│   ├── science/ (biologist, endocrinologist, exercise-physiologist, ...)
-│   └── meta/  (session-manager, knowledge-curator, bootstrapper)
 ├── templates/
-│   ├── software.spec.md                ← Template base de spec
-│   ├── medical-gate.spec.md            ← Template de spec com Medical Constraints
-│   └── blueprint.spec.md
 ├── scripts/
-│   ├── install.sh
-│   ├── validate-kit.py
-│   └── lib_machine.py
-├── README.md       ← este arquivo
-├── MANIFEST.md     ← catálogo completo de componentes
-└── MANUAL.md       ← guia de operação detalhado
+├── install.sh                          ← Instalador remoto (este script)
+├── README.md
+├── MANIFEST.md
+├── MANUAL.md
+└── AGENTS.md                           ← Tabela de roteamento (Art. XXII)
+
+[projeto]/                              ← Seu projeto
+└── .specify/                           ← Criado pelo instalador
+    ├── extensions  → ~/.vitalia-spec/extensions/
+    ├── instructions → ~/.vitalia-spec/instructions/
+    ├── rules       → ~/.vitalia-spec/rules/
+    ├── templates   → ~/.vitalia-spec/templates/
+    ├── scripts     → ~/.vitalia-spec/scripts/
+    └── memory/
+        └── session/                    ← Git repo isolado (seu contexto)
 ```
 
 ---

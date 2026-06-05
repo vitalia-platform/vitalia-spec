@@ -1,12 +1,13 @@
-<!-- kit-v2/MANIFEST.md | Atualizado em: 05-06-2026 13:05:00(GMT-04:00) -->
+<!-- kit-v2/MANIFEST.md | Atualizado em: 05-06-2026 13:33:00(GMT-04:00) -->
 
 # Vitalia Spec Kit — MANIFEST
 
 > Catálogo completo de componentes do kit.
 
 **Versão**: 2.1.0
-**Última atualização**: 05-06-2026 13:05:00(GMT-04:00)
+**Última atualização**: 05-06-2026 13:33:00(GMT-04:00)
 **Compatível com**: Antigravity (Gemini CLI) e qualquer ferramenta que suporte `.specify/`
+**Instalação**: `sh -c "$(curl -fsSL https://raw.githubusercontent.com/vitalia-platform/vitalia-spec/main/install.sh)"`
 
 ---
 
@@ -155,11 +156,12 @@
 
 | Script | Função |
 |---|---|
-| `install.sh` | Instala kit no projeto via symlinks |
-| `validate-kit.py` | Valida integridade e sincronia do kit |
-| `lib_machine.py` | Gera e recupera Machine ID da máquina local |
-| `lib_sync_guard.py` | Controle de ETag e lock de sincronia |
-| `session-resolve.sh` | Resolução interativa de conflitos de contexto |
+| `install.sh` (**raiz**) | Instalador remoto — clona `~/.vitalia-spec`, symlinks, plugin AGY |
+| `scripts/install.sh` | Instalador local (chamado pelo remoto após clone) |
+| `scripts/validate-kit.py` | Valida integridade e sincronia do kit |
+| `scripts/lib_machine.py` | Gera e recupera Machine ID da máquina local |
+| `scripts/lib_sync_guard.py` | Controle de ETag e lock de sincronia |
+| `scripts/session-resolve.sh` | Resolução interativa de conflitos de contexto |
 
 ---
 
@@ -172,6 +174,7 @@
 | Rules always-on | 5 |
 | Skills / Lib | 14 |
 | Templates | 3 |
-| Scripts | 5 |
+| Scripts | 6 |
+| **Skills AGY (plugin)** | **9** |
 | **Constraints MC-GLOBAL** | **3** (FCmax, Zonas, IMC) |
-| **Total de componentes** | **70** |
+| **Total de componentes** | **80** |
